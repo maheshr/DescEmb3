@@ -179,7 +179,7 @@ class CodeDataset(BaseDataset):
     def __getitem__(self, index):
         prefix_tensor = torch.LongTensor([1])
         input_idcs = torch.LongTensor(self.input_idcs[index])
-        input_idcs = torch.cat((prefix_tensor, input_idcs), dim=0)
+        # input_idcs = torch.cat((prefix_tensor, input_idcs), dim=0)
         seq_len = torch.LongTensor(self.sequential_lengths).unsqueeze(-1)[index]
         label = torch.LongTensor(self.label).unsqueeze(-1)[index]
         value = torch.Tensor(self.value[index])    
@@ -392,7 +392,8 @@ class Word2VecDataset(BaseDataset):
         )
 
         self.pos_pair, self.neg_pair = self.preprocess(input_idcs)
-        self.pos_pair.pop(0)
+        if 0 in self.pos_pair:
+            self.pos_pair.pop(0)
         self.index_dict = {i: k for i, k in enumerate(self.pos_pair.keys())}
 
     def __len__(self):
