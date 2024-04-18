@@ -145,7 +145,7 @@ def set_struct(cfg: dict):
     now = datetime.now()
     from pytz import timezone
     # apply timezone manually
-    now = now.astimezone(timezone('Asia/Seoul'))
+    now = now.astimezone(timezone('America/Chicago'))
 
     output_dir = os.path.join(
         root,

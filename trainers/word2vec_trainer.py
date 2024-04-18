@@ -12,6 +12,7 @@ import pickle
 
 logger = logging.getLogger(__name__)
 
+
 class Word2VecTrainer():
     def __init__(self, args):
 
@@ -54,7 +55,7 @@ class Word2VecTrainer():
 
         self.dataloader = DataLoader(
             dataset=dataset, batch_size=args.batch_size, shuffle=True
-            )
+        )
 
         self.model = Word2VecModel(index_size, emb_dim=args.enc_embed_dim).cuda()
         self.optimizer = optim.AdamW(self.model.parameters(), lr=1e-4)
@@ -70,7 +71,7 @@ class Word2VecTrainer():
                 batch_input = batch_input.cuda()
                 batch_labels = batch_labels.cuda()
                 batch_neg = batch_neg.cuda()
-                
+
                 loss = self.model(batch_input, batch_labels, batch_neg)
                 self.optimizer.zero_grad(set_to_none=True)
                 loss.backward()
@@ -112,8 +113,7 @@ class Word2VecTrainer():
     def vocab_load(self, data_path, src_data, value_mode):
         vocab_path = os.path.join(
             data_path, src_data, f'code_index_{value_mode}_vocab.pkl'
-            )
+        )
         with open(vocab_path, 'rb') as file:
             vocab_dict = pickle.load(file)
         return vocab_dict
-    

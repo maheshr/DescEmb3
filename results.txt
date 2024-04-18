@@ -1,14 +1,30 @@
-DescEmb readmission Mimic Mimic
+DescEmb readmission Mimic Mimic VC
 [2024-04-16 20:05:21,652][train][INFO] - epoch: 6, loss: 0.647, auroc: 0.511, auprc: 0.048
 [2024-04-16 20:05:21,653][trainers.trainer][INFO] - begin validation on 'valid' subset
 [2024-04-16 20:05:24,260][valid][INFO] - epoch: 6, loss: 0.645, auroc: 0.503, auprc: 0.045
 [2024-04-16 20:05:24,261][trainers.trainer][INFO] - begin validation on 'test' subset
 [2024-04-16 20:05:26,351][test][INFO] - epoch: 6, loss: 1.458, auroc: 0.505, auprc: 0.043
 
-CodeEmb readmission Mimic Mimic
+CodeEmb readmission Mimic Mimic VC
 [2024-04-16 20:12:49,586][train][INFO] - epoch: 10, loss: 0.646, auroc: 0.509, auprc: 0.045
 [2024-04-16 20:12:49,586][trainers.trainer][INFO] - begin validation on 'valid' subset
 [2024-04-16 20:12:49,956][valid][INFO] - epoch: 10, loss: 0.645, auroc: 0.502, auprc: 0.045
 [2024-04-16 20:12:49,956][trainers.trainer][INFO] - begin validation on 'test' subset
 [2024-04-16 20:12:50,207][test][INFO] - epoch: 10, loss: 1.455, auroc: 0.504, auprc: 0.043
 [2024-04-16 20:12:50,208][utils.trainer_utils][INFO] - early stop since valid performance hasn't improved for last 5
+
+DescEmb mortality Mimic Mimic VC
+[2024-04-16 20:31:44,904][train][INFO] - epoch: 9, loss: 0.645, auroc: 0.512, auprc: 0.100
+[2024-04-16 20:31:44,904][trainers.trainer][INFO] - begin validation on 'valid' subset
+[2024-04-16 20:31:46,588][valid][INFO] - epoch: 9, loss: 0.642, auroc: 0.504, auprc: 0.084
+[2024-04-16 20:31:46,588][trainers.trainer][INFO] - begin validation on 'test' subset
+[2024-04-16 20:31:47,922][test][INFO] - epoch: 9, loss: 1.420, auroc: 0.503, auprc: 0.089
+[2024-04-16 20:31:47,923][utils.trainer_utils][INFO] - early stop since valid performance hasn't improved for last 5 runs
+
+CodeEmb mortality Mimic Mimic VC
+[2024-04-16 20:26:16,416][train][INFO] - epoch: 14, loss: 0.642, auroc: 0.508, auprc: 0.095
+[2024-04-16 20:26:16,416][trainers.trainer][INFO] - begin validation on 'valid' subset
+[2024-04-16 20:26:16,713][valid][INFO] - epoch: 14, loss: 0.637, auroc: 0.505, auprc: 0.084
+[2024-04-16 20:26:16,713][trainers.trainer][INFO] - begin validation on 'test' subset
+[2024-04-16 20:26:16,940][test][INFO] - epoch: 14, loss: 1.410, auroc: 0.505, auprc: 0.091
+[2024-04-16 20:26:16,941][utils.trainer_utils][INFO] - early stop since valid performance hasn't improved for last 5 runs
