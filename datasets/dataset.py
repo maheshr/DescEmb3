@@ -9,39 +9,42 @@ import torch.utils.data
 import numpy as np
 import pandas as pd
 import os
+
+from tqdm import tqdm
 from transformers import AutoTokenizer
 
 logger = logging.getLogger(__name__)
 
+
 class BaseDataset(torch.utils.data.Dataset):
     def __init__(
-        self,
-        input_path,
-        data,
-        eval_data,
-        fold,
-        split,
-        value_mode,
-        task,
-        seed,
-        ratio,
+            self,
+            input_path,
+            data,
+            eval_data,
+            fold,
+            split,
+            value_mode,
+            task,
+            seed,
+            ratio,
     ):
         assert (
-            task not in ["mlm", "w2v"]
-            or not (data == 'pooled' and eval_data)
+                task not in ["mlm", "w2v"]
+                or not (data == 'pooled' and eval_data)
         ), "--eval_data should be set if pooled-learning on prediction tasks"
 
         self.data = data
         if task in ["mlm", "w2v"]:
             eval_data = data
 
-        self.input_path = input_path 
-        if task=='mlm':
+        self.input_path = input_path
+        if task == 'mlm':
             self.input_path = os.path.join(input_path, 'mlm')
         self.split = split
         self.prefix = (
             eval_data if (
-                data == 'pooled' and split != 'train'
+                    data == 'pooled' and split != 'train'
             ) else data
         )
         self.data_path = os.path.join(self.input_path, self.prefix)
@@ -67,7 +70,7 @@ class BaseDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         raise NotImplementedError()
-    
+
     def __getitem__(self, index):
         raise NotImplementedError()
 
@@ -78,9 +81,9 @@ class BaseDataset(torch.utils.data.Dataset):
             hit = 2
         elif self.split == 'test':
             hit = 0
-    
+
         df = pd.read_csv(self.fold)
-        splits = df[self.task+'_fold'+f'_{self.ratio}'].values
+        splits = df[self.task + '_fold' + f'_{self.ratio}'].values
         idcs = np.where(splits == hit)[0]
         return idcs
 
@@ -101,13 +104,13 @@ class BaseDataset(torch.utils.data.Dataset):
             )
         else:
             special_tokens_mask = special_tokens_mask.bool()
-       
+
         probability_matrix.masked_fill_(special_tokens_mask, value=0.0)
         masked_indices = torch.bernoulli(probability_matrix).bool()
 
         while torch.equal(masked_indices, torch.zeros(len(masked_indices)).bool()):
             masked_indices = torch.bernoulli(probability_matrix).bool()
-    
+
         labels[~masked_indices] = -100  # We only compute loss on masked tokens
 
         # 80% of the time, we replace masked input tokens with tokenizer.mask_token ([MASK])
@@ -119,21 +122,22 @@ class BaseDataset(torch.utils.data.Dataset):
         random_words = torch.randint(len(self.tokenizer), labels.shape, dtype=torch.long)
         inputs[indices_random] = random_words[indices_random]
         # The rest of the time (10% of the time) we keep the masked input tokens unchanged
-       
+
         return inputs, labels
+
 
 class CodeDataset(BaseDataset):
     def __init__(
-        self,
-        input_path,
-        data,
-        eval_data,
-        fold,
-        split,
-        value_mode,
-        task,
-        seed,
-        ratio,
+            self,
+            input_path,
+            data,
+            eval_data,
+            fold,
+            split,
+            value_mode,
+            task,
+            seed,
+            ratio,
     ):
         super().__init__(
             input_path=input_path,
@@ -154,48 +158,47 @@ class CodeDataset(BaseDataset):
 
         self.value = np.load(
             file=os.path.join(self.data_path, "value.npy"),
-        allow_pickle=True)
+            allow_pickle=True)
         self.value = self.value[hit_idcs]
-        
+
         self.input_idcs = np.load(
             file=os.path.join(self.data_path, "code_index{}".format(self.ext)),
-        allow_pickle=True
+            allow_pickle=True
         )
         self.input_idcs = self.input_idcs[hit_idcs]
 
-        
         self.label = np.load(
             file=os.path.join(
                 self.label_path, "{}.npy".format(self.task)
             )
         )
         self.label = torch.tensor(self.label[hit_idcs], dtype=torch.long)
-        
+
         logger.info(f"loaded {len(self.input_idcs)} {self.split} samples")
-        
+
     def __len__(self):
         return len(self.input_idcs)
-    
+
     def __getitem__(self, index):
         prefix_tensor = torch.LongTensor([1])
         input_idcs = torch.LongTensor(self.input_idcs[index])
         # input_idcs = torch.cat((prefix_tensor, input_idcs), dim=0)
         seq_len = torch.LongTensor(self.sequential_lengths).unsqueeze(-1)[index]
         label = torch.LongTensor(self.label).unsqueeze(-1)[index]
-        value = torch.Tensor(self.value[index])    
-        
+        value = torch.Tensor(self.value[index])
+
         return {
-                'input_ids': input_idcs,
-                'value': value,
-                'seq_len': seq_len,
-                'label': label
+            'input_ids': input_idcs,
+            'value': value,
+            'seq_len': seq_len,
+            'label': label
         }
-    
+
     def collator(self, samples):
         samples = [s for s in samples if s["input_ids"] is not None]
         if len(samples) == 0:
             return {}
-        
+
         input = {"input_ids": torch.stack([s["input_ids"] for s in samples])}
         input["seq_len"] = torch.stack([s["seq_len"] for s in samples])
         input["value"] = torch.stack([s["value"] for s in samples])
@@ -204,18 +207,19 @@ class CodeDataset(BaseDataset):
         out["net_input"] = input
         return out
 
+
 class TokenizedDataset(BaseDataset):
     def __init__(
-        self,
-        input_path,
-        data,
-        eval_data,
-        fold,
-        split,
-        value_mode,
-        task,
-        seed,
-        ratio,
+            self,
+            input_path,
+            data,
+            eval_data,
+            fold,
+            split,
+            value_mode,
+            task,
+            seed,
+            ratio,
     ):
         super().__init__(
             input_path=input_path,
@@ -241,11 +245,11 @@ class TokenizedDataset(BaseDataset):
             allow_pickle=True
         )
         self.value = self.value[hit_idcs]
-        
+
         self.input_ids, self.token_type_ids, self.attention_mask = (
             np.load(
                 file=os.path.join(self.data_path, f"{col}{self.ext}"),
-            allow_pickle=True) for col in col_names
+                allow_pickle=True) for col in col_names
         )
         self.input_ids = self.input_ids[hit_idcs]
         self.token_type_ids = self.token_type_ids[hit_idcs]
@@ -257,12 +261,12 @@ class TokenizedDataset(BaseDataset):
             )
         )
         self.label = torch.tensor(self.label[hit_idcs], dtype=torch.long)
-        
+
         logger.info(f"loaded {len(self.input_ids)} {self.split} samples")
 
     def __len__(self):
         return len(self.input_ids)
-    
+
     def __getitem__(self, index):
         input_ids = torch.LongTensor(self.input_ids[index])
         token_type_id = torch.LongTensor(self.token_type_ids[index])
@@ -279,7 +283,7 @@ class TokenizedDataset(BaseDataset):
             'value': value,
             'label': label
         }
-    
+
     def collator(self, samples):
         samples = [s for s in samples if s["input_ids"] is not None]
         if len(samples) == 0:
@@ -295,19 +299,20 @@ class TokenizedDataset(BaseDataset):
         out["net_input"] = input
         return out
 
+
 class MLMTokenizedDataset(BaseDataset):
     def __init__(
-        self,
-        input_path,
-        data,
-        eval_data,
-        fold,
-        split,
-        value_mode,
-        task,
-        seed,
-        ratio,
-        mlm_prob
+            self,
+            input_path,
+            data,
+            eval_data,
+            fold,
+            split,
+            value_mode,
+            task,
+            seed,
+            ratio,
+            mlm_prob
     ):
         super().__init__(
             input_path=input_path,
@@ -323,7 +328,7 @@ class MLMTokenizedDataset(BaseDataset):
         self.mlm_prob = mlm_prob
 
         col_names = ['input_ids', 'token_type_ids', 'attention_mask']
-        
+
         self.input_ids, self.token_type_ids, self.attention_mask = (
             np.load(
                 file=os.path.join(self.data_path, f"{col}{self.ext}"),
@@ -334,7 +339,7 @@ class MLMTokenizedDataset(BaseDataset):
 
     def __len__(self):
         return len(self.input_ids)
-    
+
     def __getitem__(self, index):
         input_ids = torch.LongTensor(self.input_ids[index])
         token_type_id = torch.LongTensor(self.token_type_ids[index])
@@ -347,12 +352,12 @@ class MLMTokenizedDataset(BaseDataset):
             'attention_mask': attn_mask,
             'mlm_labels': mlm_labels,
         }
-        
+
     def collator(self, samples):
         samples = [s for s in samples if s["input_ids"] is not None]
         if len(samples) == 0:
             return {}
-        
+
         input = {"input_ids": torch.stack([s["input_ids"] for s in samples])}
         input["token_type_ids"] = torch.stack([s["token_type_ids"] for s in samples])
         input["attention_mask"] = torch.stack([s["attention_mask"] for s in samples])
@@ -361,18 +366,19 @@ class MLMTokenizedDataset(BaseDataset):
         out["net_input"] = input
         return out
 
+
 class Word2VecDataset(BaseDataset):
     def __init__(
-        self,
-        input_path, 
-        data,
-        eval_data,
-        fold,
-        split,
-        value_mode,
-        task,
-        seed,
-        ratio,
+            self,
+            input_path,
+            data,
+            eval_data,
+            fold,
+            split,
+            value_mode,
+            task,
+            seed,
+            ratio,
     ):
         super().__init__(
             input_path,
@@ -415,7 +421,7 @@ class Word2VecDataset(BaseDataset):
 
     def preprocess(self, mimic):
         pos_pair = {}
-        skip_window=15
+        skip_window = 15
         for index in range(mimic.shape[0]):
             data = mimic[index]
             data_index = 0
@@ -449,6 +455,12 @@ class Word2VecDataset(BaseDataset):
         # negative_pair
         max_num = mimic.max()
 
-        neg_pair = {k:list(set(v) ^ set(list(np.arange(3, max_num)))) for k, v in pos_pair.items()}
+        # neg_pair = {k: list(set(v) ^ set(list(np.arange(3, max_num)))) for k, v in pos_pair.items()}
+        neg_pair = {}
+        const_set = set(list(np.arange(3, max_num)))
+        keys = list(pos_pair.keys())
+        for k in tqdm(keys):
+            neg_pair[k] = list(const_set ^ set(pos_pair[k]))
+
 
         return pos_pair, neg_pair
