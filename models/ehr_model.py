@@ -55,12 +55,22 @@ class EHRModel(nn.Module):
                 f'self.pred_model: {self.args.pred_model}'
             )
 
-            state_dict = {
-                k: v for k,v in loaded_state_dict.items() if (
-                    args.embed_model.startswith('codeemb')
-                    and 'embedding' not in k
-                )
-            }
+            model_name = "descemb" if args.embed_model.startswith("descemb") else "codeemb"
+
+            if model_name == "descemb":
+                state_dict = {
+                    k: v for k,v in loaded_state_dict.items() if (
+                        args.embed_model.startswith("descemb")
+                        # and 'embedding' not in k
+                    )
+                }
+            else:
+                state_dict = {
+                    k: v for k, v in loaded_state_dict.items() if (
+                        args.embed_model.startswith("codeemb")
+                        and 'embedding' not in k
+                    )
+                }
             missing, unexpected = self.load_state_dict(state_dict, strict=False)
             if unexpected or len(missing) > 1:
                 logger.warn(

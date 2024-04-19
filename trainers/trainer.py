@@ -132,6 +132,10 @@ class Trainer(object):
         )
 
     def train(self):
+        if self.args.transfer:
+            self.validate_and_save(0, self.valid_subsets)
+            return
+
         for epoch in range(1, self.n_epochs + 1):
             logger.info(f"begin training epoch {epoch}")
             preds_train = []
