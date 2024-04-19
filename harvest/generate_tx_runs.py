@@ -24,10 +24,14 @@ def write_cmd(models):
                 embed_model = "descemb_bert"
             src_data = "eicu" if parts[2] == "mimic" else "mimiciii"
             value_mode = parts[3].upper()
-            task = parts[4]
-            if len(parts) == 6:
-                task = parts[4] + "_" + parts[5]
-            f.write(f"call transfer_predict.cmd {task} {abs_model} {value_mode} {src_data} {embed_model}\n")
+            if value_mode == "DSVA" and parts[4].upper() == "DPE":
+                value_mode = "DSVA_DPE"
+            i = 4 if value_mode != "DSVA_DPE" else 5
+            task = parts[i]
+            if len(parts) == i+2:
+                task = parts[i] + "_" + parts[i+1]
+            if value_mode == "DSVA_DPE":
+                f.write(f"call transfer_predict.cmd {task} {abs_model} {value_mode} {src_data} {embed_model}\n")
 
 
 def main():
