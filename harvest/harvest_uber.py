@@ -19,9 +19,10 @@ def process_logs(run):
         task = config["task"]
         value_mode = config["value_mode"]
         src_data = config["src_data"]
+        eval_data = config["eval_data"]
         transfer = config["transfer"]
 
-    if model != 'ehr_model':
+    if src_data != 'pooled':
         return
 
     if transfer:
@@ -49,27 +50,35 @@ def process_logs(run):
             if "done training" in line:
                 valid_run = True
     if valid_run:
-        print(run)
         print(model, embed_model, pred_model, src_data, task, value_mode, train_prc, valid_prc, test_prc)
 
-        # rename the model
-        new_name = f"ehr_{embed_model.replace('_bert', '')}_{src_data.replace('iii', '')}_{value_mode.lower()}_{task}.pt"
-        print(new_name)
+        new_name = f"{model}_{embed_model}_{src_data}_{eval_data}_{task}_{value_mode.lower()}"
+        dst_folder = pathlib.Path(run)
+        dst_folder = dst_folder.parent
+        dst_folder = os.path.join(dst_folder, new_name)
+        print(dst_folder)
+        if not os.path.exists(dst_folder):
+            os.rename(run, dst_folder)
 
-        src_path = os.path.join(run, "checkpoints", "checkpoint_best.pt")
-        dest_path = r"C:\gatech\bd4h\p1\DescEmb3\xfer"
-        dest_path = os.path.join(dest_path, new_name)
+        # rename the model
+        # new_name = f"ehr_{embed_model.replace('_bert', '')}_{src_data.replace('iii', '')}_{value_mode.lower()}_{task}.pt"
+        # print(new_name)
+
+        # src_path = os.path.join(run, "checkpoints", "checkpoint_best.pt")
+        # dest_path = r"C:\gatech\bd4h\p1\DescEmb3\xfer"
+        # dest_path = os.path.join(dest_path, new_name)
         # copy file
         # shutil.copy(src_path, dest_path)
 
-        dst_folder = pathlib.Path(run)
-        dst_folder = dst_folder.parent
-        dst_folder = os.path.join(dst_folder, new_name).replace(".pt", "")
-        if not os.path.exists(dst_folder):
-            os.rename(run, dst_folder)
+        # dst_folder = pathlib.Path(run)
+        # dst_folder = dst_folder.parent
+        # dst_folder = os.path.join(dst_folder, new_name).replace(".pt", "")
+        # if not os.path.exists(dst_folder):
+        #     os.rename(run, dst_folder)
     else:
         dst = run + "_bad"
-        os.rename(run, dst)
+        if not os.path.exists(dst):
+            os.rename(run, dst)
 
 
 def process(folder):
@@ -85,10 +94,12 @@ def process(folder):
         process_logs(run)
 
 
-def main(args):
-    for arg in args:
-        process(arg)
+def main(outputs_folder):
+    # date_folders = os.listdir(outputs_folder)
+    # for arg in date_folders:
+    #     process(os.path.join(outputs_folder, arg))
+    process(outputs_folder)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main(r"C:\gatech\bd4h\p1\pool_results")

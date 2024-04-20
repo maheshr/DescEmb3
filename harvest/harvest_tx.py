@@ -1,9 +1,8 @@
-import shutil
 import sys
-import os
 import os.path
 import yaml
 import os
+import pathlib
 
 
 def process_logs(run):
@@ -50,6 +49,23 @@ def process_logs(run):
     if valid_run:
         print(model_path, model, embed_model, pred_model, src_data, task, value_mode, test_prc)
 
+        folder = pathlib.Path(run).parent
+        dest_path = os.path.join(folder, "xfer")
+        dest_sub = os.path.basename(model_path)
+        if "mimic" in dest_sub:
+            dest_sub = dest_sub.replace(".pt", "_txf_eicu")
+        elif "eicu" in dest_sub:
+            dest_sub = dest_sub.replace(".pt", "_txf_mimic")
+
+        folder = os.path.join(folder, dest_sub)
+
+        print(run)
+        print(folder)
+        print("break")
+        os.rename(run, folder)
+
+    else:
+        os.rename(run, run + "_bad")
 
 
 def process(folder):

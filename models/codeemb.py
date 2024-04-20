@@ -16,7 +16,7 @@ class CodeEmb(nn.Module):
         if args.src_data == 'pooled':
             mimic_dict = self.vocab_load(args.input_path, 'mimiciii', args.value_mode)
             eicu_dict = self.vocab_load(args.input_path, 'eicu', args.value_mode)
-            index_size = len(mimic_dict) + len(eicu_dict) - 3
+            index_size = len(mimic_dict) + len(eicu_dict) - 1
         else:
             vocab_dict = self.vocab_load(args.input_path, args.src_data, args.value_mode)
             index_size = len(vocab_dict)
